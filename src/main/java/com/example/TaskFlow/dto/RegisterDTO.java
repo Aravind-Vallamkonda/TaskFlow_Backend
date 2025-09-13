@@ -1,4 +1,4 @@
-package com.example.TaskFlow.dao;
+package com.example.TaskFlow.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -11,7 +11,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class RegisterDAO {
+public class RegisterDTO {
     @Size(min = 4,max = 50)
     private String userName;
     @Email

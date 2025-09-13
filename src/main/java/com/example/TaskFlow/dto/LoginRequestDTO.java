@@ -1,12 +1,11 @@
-package com.example.TaskFlow.dao;
+package com.example.TaskFlow.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class LoginRequestDAO {
+public class LoginRequestDTO {
 
     @NotBlank
     @Size(min = 8, max =100)
