@@ -53,17 +53,17 @@ public class User {
 
     @Column(nullable = false, length = 32, name =  "first_name")
     @Size(min = 1, max = 32) // The size of the first name should be between 1 and 32 characters
-    private String firstName;
+    private String firstname;
 
     @Column(nullable = false, length = 32, name= "last_name")
     @Size(min = 1, max = 32) // The size of the last name should be between 1 and 32 characters
-    private String lastName;
+    private String lastname;
 
     @Column(nullable = true,length = 32, name = "middle_name")
-    private String middleName;
+    private String middlename;
 
     @Column(nullable = false, name = "is_active")
-    private Boolean isActive;
+    private Boolean isActive =false;
 
     //columnDefinition is used to define the default value of the column in the database
     // Here we are setting the default value of is_locked to false

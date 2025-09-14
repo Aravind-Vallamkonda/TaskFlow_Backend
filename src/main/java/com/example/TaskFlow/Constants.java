@@ -1,5 +1,10 @@
 package com.example.TaskFlow;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
+
 public class Constants {
 
     public static final String REFRESH_TOKEN_CLAIM = "refresh-token";
@@ -7,5 +12,10 @@ public class Constants {
     public static final String ROLES = "roles";
     public static final String TYPE = "type";
     public static final String BEARER_PREFIX = "Bearer ";
+
+    public static ResponseEntity<Map<String,String>> invalid(String reason){
+        String message = "invalid " + reason;
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error",message));
+    }
 
 }

@@ -4,6 +4,7 @@ import com.example.TaskFlow.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 // Annotation responsivle for automatic detection of repository classes
@@ -19,5 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmailOrUsername(String identifier, String identifier2);
     Optional<User> findByUsername(String username);
+    List<User> findAll();
 
 }

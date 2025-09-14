@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ import java.util.Optional;
 // and set the authentication context accordingly.
 //This will work between the client and server to ensure secure communication.
 //This class will be added to the security filter chain in SecurityConfig.
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -37,7 +39,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     public boolean shouldNotFilter(HttpServletRequest req){
         String uri = req.getRequestURI();
         return uri.equals("/auth/login") ||
-                uri.equals("/auth/identify");
+                uri.equals("/auth/identify") ||
+                uri.equals("/auth/register");
 
     }
 
@@ -46,14 +49,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws IOException, ServletException {
 
         String authHeader = request.getHeader("Authorization");
+        System.out.println("Auth Header : "+authHeader);
         String auth_token = jwtService.extractTokenFromHeader(authHeader).orElse(null);
+        System.out.println("Auth_Token : "+auth_token);
         try{
             if(auth_token != null){
                 Claims claims = jwtService.parse(auth_token);
                 String username = jwtService.extractUsername(claims);
                 if(username ==  null || SecurityContextHolder.getContext().getAuthentication() == null){
                     User user = userRepository.findByUsername(username).orElse(null);
-                    if(user !=null ){
+                    if(user ==null ){
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         return;
                     }

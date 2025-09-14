@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class IdentifyResponseDTO {
     private String flowId;
-    private String username;
+    //private String username;
 }
