@@ -35,12 +35,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
-
+    @Override
     public boolean shouldNotFilter(HttpServletRequest req){
         String uri = req.getRequestURI();
         return uri.equals("/auth/login") ||
                 uri.equals("/auth/identify") ||
-                uri.equals("/auth/register");
+                uri.equals("/auth/register") ||
+                uri.startsWith("/v3/api-docs") ||
+                uri.startsWith("/swagger-ui");
 
     }
 
@@ -55,26 +57,48 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try{
             if(auth_token != null){
                 Claims claims = jwtService.parse(auth_token);
+                // Block if token is expired
+                if (jwtService.isTokenExpired(claims)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
                 String username = jwtService.extractUsername(claims);
-                if(username ==  null || SecurityContextHolder.getContext().getAuthentication() == null){
+                if(username !=  null || SecurityContextHolder.getContext().getAuthentication() == null){
                     User user = userRepository.findByUsername(username).orElse(null);
                     if(user ==null ){
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         return;
                     }
-             //   List<SimpleGrantedAuthority> auths = jwtService.roles(c).stream()
-              //          .map(SimpleGrantedAuthority::new).toList();
+                    // We create a List of Authorities from the claims objects
+                    // that will be set into the auth token for Spring Security's internal Memory
+                    // We are Using Java 8 Streams here for decreasing the code length
+                    List<SimpleGrantedAuthority> auths = jwtService.roles(claims)
+                            .stream().map(SimpleGrantedAuthority::new).toList();
 
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username,null);
+                    // SecurityContextHolder is the local Memory of the Spring Security.
+                    // It can be used to store the username and his roles or authentication related Data.
+                    // This is stored in thread memory of each request/thread.
+                    // The advantage of using this is the application is not required to parse the JWT again on the Internal Controllers to
+                    // to know the user specific details.
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username,null,auths);
                     SecurityContext sc = SecurityContextHolder.createEmptyContext();
                     sc.setAuthentication(auth);
                     SecurityContextHolder.setContext(sc);
                 }
+            } else {
+                // No token provided, block
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
         }catch(Exception e){
-
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
-        // Implementation for JWT authentication filtering
-        filterChain.doFilter(request, response);
+        // Only call filterChain if authentication is set
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+        }
+        // Otherwise, do not continue the filter chain
     }
 }

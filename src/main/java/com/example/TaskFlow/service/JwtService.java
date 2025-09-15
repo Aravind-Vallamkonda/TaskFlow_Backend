@@ -92,7 +92,7 @@ public class JwtService {
     // Used to extract Auth Token(JWT) from the request header
     // It returns an Optional String
     // Optional returntypes make developer to check before getting value.
-    public static Optional<String> extractTokenFromHeader(String authHeader){
+    public  Optional<String> extractTokenFromHeader(String authHeader){
         if(authHeader == null || authHeader.trim().isEmpty() || !authHeader.startsWith(Constants.BEARER_PREFIX)){
             return Optional.empty();
         }
@@ -113,5 +113,15 @@ public class JwtService {
         return Constants.ACCESS_TOKEN_CLAIM.equals(claims.get(Constants.ACCESS_TOKEN_CLAIM));
     }
 
+    @SuppressWarnings("unchecked")
+    public List<String> roles(Claims c){
+        Object v = c.get("roles");
+        return (v instanceof List) ? (List<String>) v : List.of() ;
+    }
 
+    // Checks if the token is expired
+    public boolean isTokenExpired(Claims claims) {
+        Date expiration = claims.getExpiration();
+        return expiration != null && expiration.before(new Date());
+    }
 }
