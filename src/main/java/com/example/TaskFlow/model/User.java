@@ -49,7 +49,8 @@ public class User {
 
     // If the name of the column is different from the variable name we use name attribute
     @Column(nullable = false, name = "password_hash")
-    private String passwordHash;
+    // Transient is the key word which stops the Value from getting Serialized
+    private transient String passwordHash;
 
     @Column(nullable = false, length = 32, name =  "first_name")
     @Size(min = 1, max = 32) // The size of the first name should be between 1 and 32 characters
