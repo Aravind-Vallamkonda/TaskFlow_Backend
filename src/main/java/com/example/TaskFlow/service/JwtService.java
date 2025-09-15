@@ -1,6 +1,6 @@
 package com.example.TaskFlow.service;
 
-import com.example.TaskFlow.Constants;
+import com.example.TaskFlow.Constants.Constants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.List;
-import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 

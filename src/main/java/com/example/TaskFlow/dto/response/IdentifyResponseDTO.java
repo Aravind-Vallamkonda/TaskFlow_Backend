@@ -1,4 +1,4 @@
-package com.example.TaskFlow.dto;
+package com.example.TaskFlow.dto.response;
 
 import lombok.Data;
 
