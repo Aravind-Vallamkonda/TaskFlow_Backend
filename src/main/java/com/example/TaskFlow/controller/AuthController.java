@@ -11,10 +11,12 @@ import com.example.TaskFlow.service.JwtService;
 import com.example.TaskFlow.service.LoginFlowService;
 import jakarta.validation.Valid;
 import com.example.TaskFlow.Constants.Constants;
-import org.hibernate.resource.transaction.backend.jta.internal.synchronization.RegisteredSynchronization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.*;
 
 @RestController
@@ -100,8 +103,70 @@ public class AuthController {
         var roles = java.util.List.of("USER");
         String access = jwtService.createAccessToken(uOpt.getUsername(),roles);
         String refresh = jwtService.createRefreshToken(uOpt.getUsername(),roles);
+        long refreshMaxAge = Duration.ofMinutes(jwtService.getRefreshTokenValidity()).getSeconds();
+        ResponseCookie refreshCookie = ResponseCookie.from(Constants.REFRESH_TOKEN_COOKIE, refresh)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(refreshMaxAge)
+                .build();
         log.info("User Login successful for username:{}", uOpt.getUsername());
-        return ResponseEntity.ok(Map.of(Constants.ACCESS_TOKEN_CLAIM,access ,Constants.REFRESH_TOKEN_CLAIM,refresh));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(Map.of(Constants.ACCESS_TOKEN_CLAIM,access));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null || cookies.length == 0) {
+            log.info("Refresh token cookie missing from request");
+            return Constants.invalid("refresh token");
+        }
+
+        String refreshToken = Arrays.stream(cookies)
+                .filter(cookie -> Constants.REFRESH_TOKEN_COOKIE.equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .filter(token -> token != null && !token.isBlank())
+                .findFirst()
+                .orElse(null);
+
+        if (refreshToken == null) {
+            log.info("Refresh token cookie not found");
+            return Constants.invalid("refresh token");
+        }
+
+        try {
+            var claims = jwtService.parse(refreshToken);
+            if (jwtService.isTokenExpired(claims) || !jwtService.isRefreshToken(claims)) {
+                log.info("Invalid refresh token type or expired");
+                return Constants.invalid("refresh token");
+            }
+
+            String username = jwtService.extractUsername(claims);
+            if (username == null || username.isBlank()) {
+                log.info("Refresh token missing subject");
+                return Constants.invalid("refresh token");
+            }
+
+            var user = userRepository.findByUsername(username).orElse(null);
+            if (user == null) {
+                log.info("User not found for refresh token subject:{}", username);
+                return Constants.invalid("refresh token");
+            }
+
+            List<String> roles = jwtService.roles(claims);
+            if (roles == null || roles.isEmpty()) {
+                roles = List.of("USER");
+            }
+
+            String access = jwtService.createAccessToken(username, roles);
+            log.info("Access token refreshed for username:{}", username);
+            return ResponseEntity.ok(Map.of(Constants.ACCESS_TOKEN_CLAIM, access));
+        } catch (Exception ex) {
+            log.error("Failed to refresh access token", ex);
+            return Constants.invalid("refresh token");
+        }
     }
 
 }

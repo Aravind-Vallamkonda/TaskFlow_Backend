@@ -12,6 +12,7 @@ public class Constants {
     public static final String ROLES = "roles";
     public static final String TYPE = "type";
     public static final String BEARER_PREFIX = "Bearer ";
+    public static final String REFRESH_TOKEN_COOKIE = "refreshToken";
 
     public static ResponseEntity<Map<String,String>> invalid(String reason){
         String message = "invalid " + reason;

@@ -40,6 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String uri = req.getRequestURI();
         return uri.equals("/auth/login") ||
                 uri.equals("/auth/identify") ||
+                uri.equals("/auth/refresh") ||
                 uri.equals("/auth/register") ||
                 uri.startsWith("/v3/api-docs") ||
                 uri.startsWith("/swagger-ui");
