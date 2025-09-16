@@ -9,12 +9,18 @@ import com.example.TaskFlow.model.User;
 import com.example.TaskFlow.repo.UserRepository;
 import com.example.TaskFlow.service.JwtService;
 import com.example.TaskFlow.service.LoginFlowService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import com.example.TaskFlow.Constants.Constants;
+import org.apache.coyote.Response;
 import org.hibernate.resource.transaction.backend.jta.internal.synchronization.RegisteredSynchronization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.support.Repositories;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.http.ResponseEntity;
@@ -23,7 +29,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityReturnValueHandler;
 
+import java.time.Duration;
 import java.util.*;
 
 @RestController
@@ -100,8 +108,60 @@ public class AuthController {
         var roles = java.util.List.of("USER");
         String access = jwtService.createAccessToken(uOpt.getUsername(),roles);
         String refresh = jwtService.createRefreshToken(uOpt.getUsername(),roles);
+        long refreshMaxAge = Duration.ofMinutes(jwtService.getRefreshTokenValidity()).getSeconds();
+        ResponseCookie responseCookie = ResponseCookie.from(Constants.REFRESH_TOKEN_COOKIE,refresh)
+                        .httpOnly(true)
+                                .secure(false)
+                                        .path("")
+                                                .maxAge(refreshMaxAge)
+                                                        .build();
         log.info("User Login successful for username:{}", uOpt.getUsername());
-        return ResponseEntity.ok(Map.of(Constants.ACCESS_TOKEN_CLAIM,access ,Constants.REFRESH_TOKEN_CLAIM,refresh));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(Map.of(Constants.ACCESS_TOKEN_CLAIM,access));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        // We get all the Cookies stored in the request
+        Cookie[] cookies = request.getCookies();
+        if(cookies == null || cookies.length == 0){
+            log.info("Refresh Token cookie missing from request.");
+            throw new ResponseStatusException(ErrorCode.BAD_REQUEST.getStatus(),ErrorCode.BAD_REQUEST.getMessage());
+        }
+
+        String refreshToken = Arrays.stream(cookies)
+                .filter(cookie -> Constants.REFRESH_TOKEN_COOKIE.equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .filter(token -> token != null && !token.isEmpty())
+                .findFirst()
+                .orElse(null);
+
+        if(refreshToken == null){
+            log.info("Refresh Token cookie missing from request.");
+            throw new ResponseStatusException(ErrorCode.INVALID_REFRESH_TOKEN.getStatus(),ErrorCode.INVALID_REFRESH_TOKEN.getMessage());
+        }
+
+        var claims = jwtService.parse((refreshToken));
+        if(jwtService.isTokenExpired(claims) || !jwtService.isRefreshToken(claims)){
+            log.info("Refresh Token cookie has  expired from request.");
+            throw new  ResponseStatusException(ErrorCode.INVALID_REFRESH_TOKEN.getStatus(),ErrorCode.INVALID_REFRESH_TOKEN.getMessage());
+        }
+
+        String username =jwtService.extractUsername(claims);
+        if(username == null || username.isBlank()){
+            log.info("Refresh Token cookie missing username from request.");
+            throw new ResponseStatusException(ErrorCode.INVALID_REFRESH_TOKEN.getStatus(),ErrorCode.INVALID_REFRESH_TOKEN.getMessage());
+        }
+
+        List<String> roles = jwtService.roles(claims);
+        if(roles == null || roles.isEmpty()){
+            roles = List.of("USER");
+        }
+
+        String access = jwtService.createAccessToken(username,roles);
+        log.info("Access Token refreshed for username {}",username);
+        return ResponseEntity.ok().body(Map.of(Constants.ACCESS_TOKEN_CLAIM,access));
     }
 
 }

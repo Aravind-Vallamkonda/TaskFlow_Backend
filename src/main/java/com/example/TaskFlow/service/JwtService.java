@@ -70,7 +70,7 @@ public class JwtService {
                 .subject(username)
                 .issuer(issuer)
                 .issuedAt(Date.from(now))
-                .issuedAt(Date.from(expire))
+                .expiration(Date.from(expire))
                 .claim(Constants.TYPE,Constants.REFRESH_TOKEN_CLAIM)
                 .claim(Constants.ROLES,roles)
                 .signWith(secretKey,Jwts.SIG.HS256)
@@ -105,11 +105,11 @@ public class JwtService {
     }
     //Returns whether the Token is a Refresh Token or not
     public boolean isRefreshToken(Claims claims){
-        return Constants.REFRESH_TOKEN_CLAIM.equals(claims.get(Constants.REFRESH_TOKEN_CLAIM));
+        return Constants.REFRESH_TOKEN_CLAIM.equals(claims.get(Constants.TYPE));
     }
     //Returns whether the Token is a Access Token or not
     public boolean isActiveToken(Claims claims){
-        return Constants.ACCESS_TOKEN_CLAIM.equals(claims.get(Constants.ACCESS_TOKEN_CLAIM));
+        return Constants.ACCESS_TOKEN_CLAIM.equals(claims.get(Constants.TYPE));
     }
 
     @SuppressWarnings("unchecked")
