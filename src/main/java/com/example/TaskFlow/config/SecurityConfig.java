@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .logout(l -> l.disable()) // Disabling default logout
                 // Permiting all requests to /auth/** endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","/swagger-ui/**","/v3/api-docs/**","/swagger-ui.html").permitAll()
+                        .requestMatchers("/auth/**","/swagger-ui/**","/v3/api-docs/**","/v3/api-docs.yaml","/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 // No session will be created or used by Spring Security
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
