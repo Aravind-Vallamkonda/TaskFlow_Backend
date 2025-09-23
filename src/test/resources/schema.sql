@@ -1,0 +1,1 @@
+CREATE SCHEMA IF NOT EXISTS taskflow_auth;

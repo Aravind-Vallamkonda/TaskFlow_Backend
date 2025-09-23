@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.HashSet;
+import java.util.Set;
+
 // This class represents a User entity in the database
 // It is mapped to the "users" table in the "taskflow_auth" schema
 // It has unique constraints on the email and username columns
@@ -30,7 +33,7 @@ import lombok.ToString;
 @Getter // Lombok annotation to generate getters for all fields
 @Setter // Lombok annotation to generate setters for all fields
 @EqualsAndHashCode // Lombok annotation to generate equals and hashCode methods
-@ToString // Lombok annotation to generate toString method
+@ToString(exclude = {"teams"}) // Lombok annotation to generate toString method
 
 public class User {
     @Id //Primary key for the Table
@@ -78,5 +81,8 @@ public class User {
 
     @Column(name = "failed_login_attempts")
     private Integer failedLoginAttempts;
+
+    @ManyToMany(mappedBy = "members")
+    private Set<Team> teams = new HashSet<>();
 
 }

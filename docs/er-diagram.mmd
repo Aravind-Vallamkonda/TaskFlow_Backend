@@ -1,0 +1,72 @@
+---
+title: TaskFlow Core ER Diagram
+---
+erDiagram
+    USER ||--o{ TEAM_MEMBERS : participates_in
+    TEAM ||--o{ TEAM_MEMBERS : includes
+    TEAM ||--o{ PROJECT : owns
+    PROJECT ||--o{ TASK : contains
+    TASK ||--o{ COMMENT : receives
+    TASK ||--o{ ATTACHMENT : stores
+    USER ||--o{ COMMENT : authors
+    USER ||--o{ ATTACHMENT : uploads
+    USER ||--o{ TASK : assigned_to
+
+    USER {
+        LONG id PK
+        STRING email
+        STRING username
+        STRING first_name
+        STRING last_name
+    }
+
+    TEAM {
+        LONG id PK
+        STRING name
+        STRING description
+        INSTANT created_at
+        INSTANT updated_at
+    }
+
+    PROJECT {
+        LONG id PK
+        LONG team_id FK
+        STRING name
+        STRING description
+        INTEGER board_order
+        INSTANT created_at
+        INSTANT updated_at
+    }
+
+    TASK {
+        LONG id PK
+        LONG project_id FK
+        STRING title
+        STRING description
+        STRING status
+        STRING priority
+        DATE due_date
+        INTEGER column_position
+        INTEGER swimlane_position
+        LONG assignee_id FK
+        LONG assigned_by_id FK
+        INSTANT assigned_at
+    }
+
+    COMMENT {
+        LONG id PK
+        LONG task_id FK
+        LONG author_id FK
+        STRING body
+        INSTANT created_at
+    }
+
+    ATTACHMENT {
+        LONG id PK
+        LONG task_id FK
+        LONG uploaded_by_id FK
+        STRING file_name
+        STRING storage_url
+        LONG file_size_bytes
+        INSTANT created_at
+    }
