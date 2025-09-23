@@ -16,3 +16,7 @@
 ## Build and Run via Executable JAR
 1. Package the service with `./mvnw clean package`.
 2. Run the generated artifact using `java -jar target/TaskFlow-0.0.1-SNAPSHOT.jar`.
+
+## Entity Relationship Diagram
+
+The core relationships between users, teams, projects, and tasks are documented in [docs/er-diagram.mmd](docs/er-diagram.mmd). The file uses Mermaid syntax and can be rendered by any Mermaid-compatible tool or IDE plugin.
