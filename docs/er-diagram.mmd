@@ -1,0 +1,82 @@
+erDiagram
+    USER ||--o{ TEAM_MEMBERS : "joins"
+    TEAM ||--o{ TEAM_MEMBERS : "has"
+    TEAM ||--o{ PROJECT : "owns"
+    PROJECT ||--o{ TASK : "contains"
+    TASK ||--o{ TASK_COMMENTS : "receives"
+    USER ||--o{ TASK_COMMENTS : "authors"
+    TASK ||--o{ TASK_ATTACHMENTS : "stores"
+    USER ||--o{ TASK_ASSIGNMENT : "assigned"
+
+    USER {
+        bigint id PK
+        varchar email
+        varchar username
+        varchar first_name
+        varchar last_name
+    }
+
+    TEAM {
+        bigint id PK
+        varchar name
+        varchar description
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PROJECT {
+        bigint id PK
+        varchar name
+        varchar description
+        date start_date
+        date due_date
+        bigint team_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TASK {
+        bigint id PK
+        varchar title
+        text description
+        varchar status
+        varchar priority
+        date due_date
+        integer sort_order
+        bigint project_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TASK_ASSIGNMENT {
+        bigint task_id FK
+        bigint assignee_id FK
+        bigint delegate_id FK
+        timestamp assigned_at
+        timestamp acknowledged_at
+        timestamp completed_at
+    }
+
+    TASK_COMMENTS {
+        bigint id PK
+        bigint task_id FK
+        bigint author_id FK
+        text content
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TASK_ATTACHMENTS {
+        bigint id PK
+        bigint task_id FK
+        varchar file_name
+        varchar storage_url
+        varchar content_type
+        bigint file_size
+        timestamp uploaded_at
+    }
+
+    TEAM_MEMBERS {
+        bigint team_id FK
+        bigint user_id FK
+    }
