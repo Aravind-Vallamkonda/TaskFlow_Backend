@@ -1,7 +1,16 @@
 package com.example.TaskFlow.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
@@ -83,10 +92,10 @@ public class User {
     @Column(name = "failed_login_attempts")
     private Integer failedLoginAttempts;
 
-    @ManyToMany(mappedBy = "members")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Set<Team> teams = new HashSet<>();
+    private Set<TeamMembership> memberships = new HashSet<>();
 
 }
