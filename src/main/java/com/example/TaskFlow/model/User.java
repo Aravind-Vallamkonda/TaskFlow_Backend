@@ -1,5 +1,6 @@
 package com.example.TaskFlow.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -7,6 +8,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.HashSet;
+import java.util.Set;
 
 // This class represents a User entity in the database
 // It is mapped to the "users" table in the "taskflow_auth" schema
@@ -78,5 +82,11 @@ public class User {
 
     @Column(name = "failed_login_attempts")
     private Integer failedLoginAttempts;
+
+    @ManyToMany(mappedBy = "members")
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<Team> teams = new HashSet<>();
 
 }
