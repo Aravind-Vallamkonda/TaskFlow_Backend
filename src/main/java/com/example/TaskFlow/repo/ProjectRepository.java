@@ -9,4 +9,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByTeamId(Long teamId);
 
     List<Project> findByNameContainingIgnoreCase(String name);
+
+    boolean existsByTeamIdAndNameIgnoreCase(Long teamId, String name);
 }
