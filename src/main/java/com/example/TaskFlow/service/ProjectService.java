@@ -117,7 +117,7 @@ public class ProjectService {
     }
 
     private TeamMembership getActiveMembership(Long teamId, Long userId) {
-        TeamMembership membership = teamMembershipRepository.findByTeamIdAndUserId(teamId, userId)
+        TeamMembership membership = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a member of the team"));
         if (!membership.getStatus().isActive()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Membership is not active");

@@ -16,6 +16,8 @@ import com.example.TaskFlow.repo.TeamMembershipRepository;
 import com.example.TaskFlow.repo.TeamRepository;
 import com.example.TaskFlow.repo.UserRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +29,8 @@ import java.util.Objects;
 @Service
 @Transactional
 public class TeamService {
+
+    private static final Logger logger = LoggerFactory.getLogger(TeamService.class);
 
     private final TeamRepository teamRepository;
     private final TeamMembershipRepository teamMembershipRepository;
@@ -74,15 +78,16 @@ public class TeamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
         User inviter = userRepository.findByUsername(inviterUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        TeamMembership inviterMembership = teamMembershipRepository.findByTeamIdAndUserId(teamId, inviter.getId())
+        TeamMembership inviterMembership = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, inviter.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a member of the team"));
         if (!inviterMembership.isActiveAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only administrators can invite members");
         }
         User invitee = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitee not found"));
-        TeamMembership existing = teamMembershipRepository.findByTeamIdAndUserId(teamId, invitee.getId()).orElse(null);
+        TeamMembership existing = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, invitee.getId()).orElse(null);
         if (existing != null) {
+            logger.info("Team MemberShip : "+existing);
             switch (existing.getStatus()) {
                 case ACTIVE -> throw new ResponseStatusException(HttpStatus.CONFLICT, "User already an active member");
                 case INVITED -> {
@@ -106,6 +111,7 @@ public class TeamService {
         }
         TeamMembership membership = new TeamMembership();
         membership.setTeam(team);
+        logger.info(invitee.toString());
         membership.setUser(invitee);
         membership.setRole(request.getRole() != null ? request.getRole() : TeamRole.MEMBER);
         membership.setInvitedBy(inviter);
@@ -113,7 +119,7 @@ public class TeamService {
         membership.setInvitedAt(Instant.now());
         team.getMemberships().add(membership);
         invitee.getMemberships().add(membership);
-        teamRepository.save(team);
+        teamMembershipRepository.save(membership);
         return teamMapper.toResponse(team);
     }
 
@@ -149,12 +155,12 @@ public class TeamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
         User actor = userRepository.findByUsername(actorUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        TeamMembership actorMembership = teamMembershipRepository.findByTeamIdAndUserId(teamId, actor.getId())
+        TeamMembership actorMembership = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, actor.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a team member"));
         if (!actorMembership.isActiveAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only administrators can update roles");
         }
-        TeamMembership target = teamMembershipRepository.findByTeamIdAndUserId(teamId, memberId)
+        TeamMembership target = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, memberId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Membership not found"));
         if (!target.getStatus().isActive()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Membership is not active");
@@ -169,12 +175,12 @@ public class TeamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
         User actor = userRepository.findByUsername(actorUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        TeamMembership actorMembership = teamMembershipRepository.findByTeamIdAndUserId(teamId, actor.getId())
+        TeamMembership actorMembership = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, actor.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a team member"));
         if (!actorMembership.isActiveAdmin() && !Objects.equals(memberId, actor.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Insufficient permissions to remove members");
         }
-        TeamMembership target = teamMembershipRepository.findByTeamIdAndUserId(teamId, memberId)
+        TeamMembership target = teamMembershipRepository.findByTeam_IdAndUser_Id(teamId, memberId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Membership not found"));
         if (!target.getStatus().isActive()) {
             target.setStatus(MembershipStatus.REMOVED);

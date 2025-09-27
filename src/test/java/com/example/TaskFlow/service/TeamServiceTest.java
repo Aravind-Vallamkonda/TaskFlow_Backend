@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,7 +77,7 @@ class TeamServiceTest {
         adminMembership.setStatus(MembershipStatus.ACTIVE);
         when(teamRepository.findById(4L)).thenReturn(Optional.of(team));
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(membershipRepository.findByTeamIdAndUserId(4L, 1L)).thenReturn(Optional.of(adminMembership));
+        when(membershipRepository.findByTeam_IdAndUser_Id(4L, 1L)).thenReturn(Optional.of(adminMembership));
         User invitee = new User();
         invitee.setId(8L);
         invitee.setUsername("member");
@@ -115,8 +114,8 @@ class TeamServiceTest {
         memberMembership.setRole(TeamRole.MEMBER);
         when(teamRepository.findById(2L)).thenReturn(Optional.of(team));
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(membershipRepository.findByTeamIdAndUserId(2L, 1L)).thenReturn(Optional.of(adminMembership));
-        when(membershipRepository.findByTeamIdAndUserId(2L, 7L)).thenReturn(Optional.of(memberMembership));
+        when(membershipRepository.findByTeam_IdAndUser_Id(2L, 1L)).thenReturn(Optional.of(adminMembership));
+        when(membershipRepository.findByTeam_IdAndUser_Id(2L, 7L)).thenReturn(Optional.of(memberMembership));
 
         TeamRoleUpdateRequestDTO request = new TeamRoleUpdateRequestDTO(TeamRole.ADMIN);
         teamService.updateMemberRole(2L, 7L, request, "admin");
@@ -139,8 +138,8 @@ class TeamServiceTest {
         team.getMemberships().add(adminMembership);
         when(teamRepository.findById(10L)).thenReturn(Optional.of(team));
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(membershipRepository.findByTeamIdAndUserId(10L, 3L)).thenReturn(Optional.of(adminMembership));
-        when(membershipRepository.findByTeamIdAndUserId(10L, 3L)).thenReturn(Optional.of(adminMembership));
+        when(membershipRepository.findByTeam_IdAndUser_Id(10L, 3L)).thenReturn(Optional.of(adminMembership));
+        when(membershipRepository.findByTeam_IdAndUser_Id(10L, 3L)).thenReturn(Optional.of(adminMembership));
 
         assertThatThrownBy(() -> teamService.removeMember(10L, 3L, "admin"))
                 .isInstanceOf(ResponseStatusException.class)

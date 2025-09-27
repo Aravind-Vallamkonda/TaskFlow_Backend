@@ -21,13 +21,16 @@ public class TaskMapper {
         AssignmentMetadata assignment = task.getAssignment();
         TaskAssignmentDTO assignmentDTO = null;
         if (assignment != null) {
+            /*
             assignmentDTO = new TaskAssignmentDTO(
                     assignment.getAssignee() != null ? assignment.getAssignee().getId() : null,
                     assignment.getDelegate() != null ? assignment.getDelegate().getId() : null,
                     assignment.getAssignedAt(),
                     assignment.getAcknowledgedAt(),
                     assignment.getCompletedAt()
+
             );
+             */
         }
 
         List<AttachmentResponseDTO> attachments = task.getAttachments().stream()

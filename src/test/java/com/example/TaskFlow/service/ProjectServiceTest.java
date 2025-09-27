@@ -69,7 +69,7 @@ class ProjectServiceTest {
 
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
         when(teamRepository.findById(2L)).thenReturn(Optional.of(team));
-        when(teamMembershipRepository.findByTeamIdAndUserId(2L, 1L)).thenReturn(Optional.of(membership));
+        when(teamMembershipRepository.findByTeam_IdAndUser_Id(2L, 1L)).thenReturn(Optional.of(membership));
         when(projectRepository.existsByTeamIdAndNameIgnoreCase(2L, "Launch Pad")).thenReturn(false);
         when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> {
             Project project = invocation.getArgument(0);
@@ -103,7 +103,7 @@ class ProjectServiceTest {
 
         when(userRepository.findByUsername("member")).thenReturn(Optional.of(user));
         when(teamRepository.findById(2L)).thenReturn(Optional.of(team));
-        when(teamMembershipRepository.findByTeamIdAndUserId(2L, 1L)).thenReturn(Optional.of(membership));
+        when(teamMembershipRepository.findByTeam_IdAndUser_Id(2L, 1L)).thenReturn(Optional.of(membership));
 
         assertThatThrownBy(() -> projectService.createProject(request, "member"))
                 .isInstanceOf(ResponseStatusException.class)
@@ -145,7 +145,7 @@ class ProjectServiceTest {
 
         when(projectRepository.findById(12L)).thenReturn(Optional.of(project));
         when(userRepository.findByUsername("member")).thenReturn(Optional.of(user));
-        when(teamMembershipRepository.findByTeamIdAndUserId(8L, 9L)).thenReturn(Optional.of(membership));
+        when(teamMembershipRepository.findByTeam_IdAndUser_Id(8L, 9L)).thenReturn(Optional.of(membership));
 
         assertThatThrownBy(() -> projectService.deleteProject(12L, "member"))
                 .isInstanceOf(ResponseStatusException.class)
