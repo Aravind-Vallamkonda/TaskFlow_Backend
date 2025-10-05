@@ -4,6 +4,7 @@ import com.example.TaskFlow.jwt.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 // @EnableWebSecurity: Enables Spring Security's web security support
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -39,6 +41,7 @@ public class SecurityConfig {
                 // Permiting all requests to /auth/** endpoints
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**","/swagger-ui/**","/v3/api-docs/**","/v3/api-docs.yaml","/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/tasks/**", "/api/teams/**", "/api/projects/**").hasAnyRole("ADMIN","MEMBER")
                         .anyRequest().authenticated())
                 // No session will be created or used by Spring Security
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

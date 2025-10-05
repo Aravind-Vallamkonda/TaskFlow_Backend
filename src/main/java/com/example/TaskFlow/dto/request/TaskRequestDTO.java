@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class TaskRequestDTO {
@@ -40,4 +41,8 @@ public class TaskRequestDTO {
     private LocalDate dueDate;
 
     private Integer sortOrder;
+
+    private List<AttachmentPayloadDTO> attachments;
+
+    private List<Long> removeAttachmentIds;
 }

@@ -5,7 +5,9 @@ import com.example.TaskFlow.model.Comment;
 import com.example.TaskFlow.model.Project;
 import com.example.TaskFlow.model.Task;
 import com.example.TaskFlow.model.Team;
+import com.example.TaskFlow.model.enums.TeamRole;
 import com.example.TaskFlow.model.User;
+import com.example.TaskFlow.model.enums.MembershipStatus;
 import com.example.TaskFlow.model.enums.TaskPriority;
 import com.example.TaskFlow.model.enums.TaskStatus;
 import org.junit.jupiter.api.Test;
@@ -46,7 +48,7 @@ class TeamProjectTaskRepositoryTests {
         Team team = new Team();
         team.setName("Platform");
         team.setDescription("Core platform initiatives");
-        team.addMember(owner);
+        team.addMembership(owner, TeamRole.ADMIN);
         team = teamRepository.saveAndFlush(team);
 
         Project project = new Project();
@@ -107,8 +109,8 @@ class TeamProjectTaskRepositoryTests {
 
         Team team = new Team();
         team.setName("Mobile");
-        team.addMember(primary);
-        team.addMember(collaborator);
+        team.addMembership(primary, TeamRole.ADMIN);
+        team.addMembership(collaborator, TeamRole.MEMBER);
         team = teamRepository.saveAndFlush(team);
 
         Project project = new Project();
@@ -127,7 +129,7 @@ class TeamProjectTaskRepositoryTests {
 
         projectRepository.saveAndFlush(project);
 
-        assertThat(teamRepository.findByMembersId(primary.getId()))
+        assertThat(teamRepository.findDistinctByMembershipsUserIdAndMembershipsStatus(primary.getId(), MembershipStatus.ACTIVE))
                 .extracting(Team::getId)
                 .contains(team.getId());
 

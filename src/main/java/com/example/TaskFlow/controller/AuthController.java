@@ -10,6 +10,8 @@ import com.example.TaskFlow.dto.response.IdentifyResponseDTO;
 import com.example.TaskFlow.dto.response.TokenResponse;
 import com.example.TaskFlow.exception.ApiError;
 import com.example.TaskFlow.model.User;
+import com.example.TaskFlow.model.enums.MembershipStatus;
+import com.example.TaskFlow.repo.TeamMembershipRepository;
 import com.example.TaskFlow.repo.UserRepository;
 import com.example.TaskFlow.service.JwtService;
 import com.example.TaskFlow.service.LoginFlowService;
@@ -39,8 +41,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Tag(name = "Authentication", description = "Operations related to user onboarding and token lifecycle management.")
 @RestController
@@ -51,15 +55,17 @@ public class AuthController {
 
         private final UserRepository userRepository;
         private final LoginFlowService loginFlowService;
+        private final TeamMembershipRepository teamMembershipRepository;
         private final PasswordEncoder encoder;
         private final JwtService jwtService;
 
         public AuthController(UserRepository userRepository, LoginFlowService loginFlowService, JwtService jwtService,
-                        PasswordEncoder encoder) {
+                        PasswordEncoder encoder, TeamMembershipRepository teamMembershipRepository) {
                 this.userRepository = userRepository;
                 this.loginFlowService = loginFlowService;
                 this.jwtService = jwtService;
                 this.encoder = encoder;
+                this.teamMembershipRepository = teamMembershipRepository;
         }
 
         @PostMapping("/register")
@@ -165,7 +171,7 @@ public class AuthController {
                                         ErrorCode.INVALID_PASSWORD.getMessage());
                 }
 
-                List<String> roles = List.of("USER");
+                List<String> roles = buildRolesForUser(user);
                 String access = jwtService.createAccessToken(user.getUsername(), roles);
                 String refresh = jwtService.createRefreshToken(user.getUsername(), roles);
                 long refreshMaxAge = Duration.ofMinutes(jwtService.getRefreshTokenValidity()).getSeconds();
@@ -231,11 +237,23 @@ public class AuthController {
 
                 List<String> roles = jwtService.roles(claims);
                 if (roles == null || roles.isEmpty()) {
-                        roles = List.of("USER");
+                        roles = List.of("ROLE_MEMBER");
                 }
 
                 String access = jwtService.createAccessToken(username, roles);
                 log.info("Access token refreshed for username {}", username);
                 return ResponseEntity.ok(new TokenResponse(access));
+        }
+
+        private List<String> buildRolesForUser(User user) {
+                Set<String> roles = new LinkedHashSet<>();
+                roles.add("ROLE_MEMBER");
+                teamMembershipRepository.findByUserIdAndStatus(user.getId(), MembershipStatus.ACTIVE)
+                                .forEach(membership -> {
+                                        String baseRole = "ROLE_" + membership.getRole().name();
+                                        roles.add(baseRole);
+                                        roles.add("TEAM_" + membership.getTeam().getId() + "_" + membership.getRole().name());
+                                });
+                return List.copyOf(roles);
         }
 }
