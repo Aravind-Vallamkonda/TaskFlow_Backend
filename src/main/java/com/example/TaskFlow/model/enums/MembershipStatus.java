@@ -7,7 +7,8 @@ public enum MembershipStatus {
     INVITED,
     ACTIVE,
     DECLINED,
-    REMOVED;
+    REMOVED,
+    INACTIVE;
 
     public boolean isActive() {
         return this == ACTIVE;
